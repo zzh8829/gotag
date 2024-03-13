@@ -10,6 +10,19 @@ import (
 	"strings"
 )
 
+func parseTag(in string) (int, int, int, error) {
+	parts := strings.Split(strings.TrimPrefix(in, "v"), ".")
+	if len(parts) != 3 {
+		return 0, 0, 0, fmt.Errorf("latest tag does not follow semantic versioning")
+	}
+
+	major, _ := strconv.Atoi(parts[0])
+	minor, _ := strconv.Atoi(parts[1])
+	patch, _ := strconv.Atoi(parts[2])
+
+	return major, minor, patch, nil
+}
+
 func main() {
 	// Pull the latest tags from Git
 	cmd := exec.Command("git", "fetch", "--tags")
@@ -38,22 +51,35 @@ func main() {
 
 	fmt.Println("Latest tag:", latestTag)
 
-	// Ask user for version bump type
 	reader := bufio.NewReader(os.Stdin)
+
+	// Parse the latest tag and increment version
+	var major, minor, patch int
+	for {
+		if major, minor, patch, err = parseTag(latestTag); err != nil {
+			fmt.Println("Error parsing latest tag:", err)
+			fmt.Println("Manually enter last tag? ([tag]/n)")
+			newTag, _ := reader.ReadString('\n')
+			newTag = strings.TrimSpace(newTag)
+			if newTag == "n" {
+				fmt.Println("Tag creation aborted.")
+				return
+			}
+			latestTag = newTag
+		} else {
+			break
+		}
+	}
+
+	// Ask user for version bump type
 	fmt.Println("Bump ma(j)or, mi(n)or, or (p)atch? Enter q to (q)uit.")
 	bumpType, _ := reader.ReadString('\n')
 	bumpType = strings.TrimSpace(bumpType)
 
-	// Parse the latest tag and increment version
-	parts := strings.Split(strings.TrimPrefix(latestTag, "v"), ".")
-	if len(parts) != 3 {
-		fmt.Println("Error: Latest tag does not follow semantic versioning")
+	if bumpType == "q" {
+		fmt.Println("Tag creation aborted.")
 		return
 	}
-
-	major, _ := strconv.Atoi(parts[0])
-	minor, _ := strconv.Atoi(parts[1])
-	patch, _ := strconv.Atoi(parts[2])
 
 	switch bumpType {
 	case "j":
