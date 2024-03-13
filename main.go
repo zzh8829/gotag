@@ -40,7 +40,7 @@ func main() {
 
 	// Ask user for version bump type
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Bump ma(j)or, mi(n)or, or (p)atch?")
+	fmt.Println("Bump ma(j)or, mi(n)or, or (p)atch? Enter q to (q)uit.")
 	bumpType, _ := reader.ReadString('\n')
 	bumpType = strings.TrimSpace(bumpType)
 
