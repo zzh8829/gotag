@@ -30,7 +30,11 @@ func main() {
 	tags := strings.Split(string(output), "\n")
 	sort.Strings(tags)
 
-	latestTag := tags[len(tags)-2] // -2 because Split includes an empty string at the end
+	if len(tags) < 2 {
+		fmt.Println("Warn: No tags found: using 0.0.0")
+		tags = append(tags, "v0.0.0")
+	}
+	latestTag := tags[len(tags)-1]
 
 	fmt.Println("Latest tag:", latestTag)
 
@@ -69,6 +73,14 @@ func main() {
 	newTag := fmt.Sprintf("%d.%d.%d", major, minor, patch)
 	fmt.Println("New tag:", newTag)
 
+	fmt.Println("Create the tag? (y/n)")
+	create, _ := reader.ReadString('\n')
+	create = strings.TrimSpace(create)
+	if create != "y" {
+		fmt.Println("Tag creation aborted.")
+		return
+	}
+
 	// Create tag with current commit
 	cmd = exec.Command("git", "tag", newTag)
 	err = cmd.Run()
@@ -83,7 +95,7 @@ func main() {
 	push = strings.TrimSpace(push)
 
 	if push == "y" {
-		cmd = exec.Command("git", "push", "origin", newTag)
+		cmd = exec.Command("git", "push", "--atomic", "origin", "HEAD", newTag)
 		err = cmd.Run()
 		if err != nil {
 			fmt.Println("Error pushing new tag:", err)
