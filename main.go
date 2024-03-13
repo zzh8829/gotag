@@ -45,7 +45,7 @@ func main() {
 	bumpType = strings.TrimSpace(bumpType)
 
 	// Parse the latest tag and increment version
-	parts := strings.Split(latestTag, ".")
+	parts := strings.Split(strings.TrimPrefix(latestTag, "v"), ".")
 	if len(parts) != 3 {
 		fmt.Println("Error: Latest tag does not follow semantic versioning")
 		return
@@ -70,7 +70,7 @@ func main() {
 		return
 	}
 
-	newTag := fmt.Sprintf("%d.%d.%d", major, minor, patch)
+	newTag := fmt.Sprintf("v%d.%d.%d", major, minor, patch)
 	fmt.Println("New tag:", newTag)
 
 	fmt.Println("Create the tag? (y/n)")
